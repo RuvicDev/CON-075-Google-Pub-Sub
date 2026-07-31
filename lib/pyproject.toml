@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ruvic-pubsub-connector"
+version = "1.0.0"
+description = "Conector Ruvic para Google Cloud Pub/Sub"
+requires-python = ">=3.10"
+dependencies = [
+  "google-cloud-pubsub>=2.21,<3.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["ruvic_pubsub_connector*"]

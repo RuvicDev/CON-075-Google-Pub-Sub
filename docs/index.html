@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="doc_title">Conector Google Pub/Sub — Ruvic</title>
+  <link rel="stylesheet" href="assets/ruvic.css">
+</head>
+<body>
+  <main class="ruvic-container">
+    <nav class="ruvic-toc" aria-label="Índice">
+      <h2 data-i18n="toc_title">Contenido</h2>
+      <ol>
+        <li><a href="#que-es" data-i18n="toc.que_es">¿Qué es y para qué sirve?</a></li>
+        <li><a href="#prerrequisitos" data-i18n="toc.prerrequisitos">Prerrequisitos</a></li>
+        <li><a href="#configuracion-fabricante" data-i18n="toc.configuracion_fabricante">Configuración en el fabricante</a></li>
+        <li><a href="#permisos" data-i18n="toc.permisos">Permisos requeridos</a></li>
+        <li><a href="#configuracion-ruvic" data-i18n="toc.configuracion_ruvic">Configuración en Ruvic</a></li>
+        <li><a href="#verificacion" data-i18n="toc.verificacion">Verificación</a></li>
+        <li><a href="#solucion-problemas" data-i18n="toc.solucion_problemas">Solución de problemas</a></li>
+        <li><a href="#faq-seguridad" data-i18n="toc.faq_seguridad">Preguntas frecuentes y notas de seguridad</a></li>
+      </ol>
+    </nav>
+
+    <h1 data-i18n="guide_title">Conector Google Pub/Sub</h1>
+    <p class="guide-updated">{{ULTIMA_ACTUALIZACION}}</p>
+
+    <section>
+      <h2 id="que-es" data-i18n="section.que_es">¿Qué es y para qué sirve?</h2>
+      <p data-i18n="section.que_es.body">Este conector permite al agente de Ruvic publicar mensajes en un tópico de Google Cloud Pub/Sub, crear suscripciones pull sobre ese tópico, y consumir mensajes de una suscripción.</p>
+      <div class="callout callout-warning">
+        <span class="callout-title" data-i18n="section.que_es.sensitive_title">Este conector escribe y elimina datos reales</span>
+        <span data-i18n="section.que_es.sensitive_body">publish_message escribe un mensaje real. create_subscription crea un recurso real en el proyecto. consume_messages confirma (ack) los mensajes recibidos, que no vuelven a entregarse.</span>
+      </div>
+      <table>
+        <thead><tr><th data-i18n="table.operacion">Operación</th><th data-i18n="table.que_hace">Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td><code>pubsub.publish_message</code></td><td data-i18n="op.publish_message">Publica un mensaje de texto en el tópico configurado</td></tr>
+          <tr><td><code>pubsub.create_subscription</code></td><td data-i18n="op.create_subscription">Crea una suscripción pull sobre el tópico configurado</td></tr>
+          <tr><td><code>pubsub.consume_messages</code></td><td data-i18n="op.consume_messages">Consume y confirma mensajes de una suscripción</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2 id="prerrequisitos" data-i18n="section.prerrequisitos">Prerrequisitos</h2>
+      <ul>
+        <li data-i18n="prereq.1">Un <strong>tópico de Google Cloud Pub/Sub</strong> ya creado.</li>
+        <li data-i18n="prereq.2">Acceso a <strong>Google Cloud Console</strong> para crear una cuenta de servicio.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 id="configuracion-fabricante" data-i18n="section.configuracion_fabricante">Configuración en el fabricante</h2>
+      <ol class="ruvic-steps">
+        <li>
+          <strong data-i18n="step.1.label">Creá una cuenta de servicio dedicada.</strong>
+          <p data-i18n="step.1.body">En Google Cloud Console → IAM y administración → Cuentas de servicio → Crear cuenta de servicio. Generá y descargá una clave JSON.</p>
+        </li>
+        <li>
+          <strong data-i18n="step.2.label">Otorgá acceso al tópico con mínimo privilegio.</strong>
+          <p data-i18n="step.2.body">Asigná los roles "Pub/Sub Publisher" (para publicar) y "Pub/Sub Editor" o "Pub/Sub Subscriber" (para crear suscripciones y consumir), idealmente limitados al tópico específico mediante condiciones IAM.</p>
+        </li>
+        <li>
+          <strong data-i18n="step.3.label">Anotá los datos necesarios.</strong>
+          <p data-i18n="step.3.body">El contenido completo del archivo JSON de la cuenta de servicio, y el nombre del tópico.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 id="permisos" data-i18n="section.permisos">Permisos requeridos</h2>
+      <table>
+        <thead><tr><th data-i18n="table.permiso">Permiso</th><th data-i18n="table.para_que">Para qué sirve</th></tr></thead>
+        <tbody>
+          <tr><td>Pub/Sub Publisher</td><td data-i18n="perm.publisher">Publicar mensajes en el tópico</td></tr>
+          <tr><td>Pub/Sub Editor / Subscriber</td><td data-i18n="perm.subscriber">Crear suscripciones y consumir mensajes</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-info">
+        <span class="callout-title" data-i18n="perm.note_title">Nota</span>
+        <span data-i18n="perm.note_body">No se otorga el rol "Pub/Sub Admin" a nivel de proyecto completo si es posible limitarlo al tópico específico.</span>
+      </div>
+    </section>
+
+    <section>
+      <h2 id="configuracion-ruvic" data-i18n="section.configuracion_ruvic">Configuración en Ruvic</h2>
+      <p data-i18n="ruvic.intro">Entrá a <strong>Settings → Conectores</strong>, buscá <strong>Google Pub/Sub</strong> y pulsá <strong>Configurar</strong>. Pegá el JSON completo de la cuenta de servicio y el nombre del tópico.</p>
+      <p><span class="ruvic-button" data-i18n="ruvic.test_button">Probar conexión</span><span data-i18n="ruvic.test_note"> — la plataforma verificará el acceso al tópico para confirmar credenciales.</span></p>
+    </section>
+
+    <section>
+      <h2 id="verificacion" data-i18n="section.verificacion">Verificación</h2>
+      <ol class="ruvic-steps">
+        <li><strong data-i18n="verif.1.label">Test de conexión exitoso.</strong><p data-i18n="verif.1.body">"Probar conexión" debe responder con éxito.</p></li>
+        <li><strong data-i18n="verif.2.label">Prueba mínima con el agente.</strong><p data-i18n="verif.2.body">Pedile:</p><blockquote data-i18n="verif.2.quote">"Publicá un mensaje de prueba en el tópico."</blockquote><p data-i18n="verif.2.result">El agente debe confirmar la publicación y devolver el message_id.</p></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 id="solucion-problemas" data-i18n="section.solucion_problemas">Solución de problemas</h2>
+      <table>
+        <thead><tr><th data-i18n="table.mensaje">Mensaje / síntoma</th><th data-i18n="table.causa">Causa probable y solución</th></tr></thead>
+        <tbody>
+          <tr><td data-i18n="trouble.1.msg">"Credenciales inválidas o sin permiso IAM suficiente"</td><td data-i18n="trouble.1.fix">Falta el rol "Pub/Sub Publisher" o "Pub/Sub Editor/Subscriber" sobre el tópico, o la clave fue revocada.</td></tr>
+          <tr><td data-i18n="trouble.2.msg">"El tópico no existe o no es accesible"</td><td data-i18n="trouble.2.fix">Nombre de tópico mal escrito, o el tópico está en otro proyecto distinto al de la cuenta de servicio.</td></tr>
+          <tr><td data-i18n="trouble.3.msg">"Google Cloud Pub/Sub no respondió correctamente"</td><td data-i18n="trouble.3.fix">Límite de cuota temporal; reintentá en unos segundos.</td></tr>
+          <tr><td data-i18n="trouble.4.msg">consume_messages siempre devuelve una lista vacía</td><td data-i18n="trouble.4.fix">No es un error: no había mensajes disponibles. Verificá que otro consumidor no esté vaciando la suscripción primero.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2 id="faq-seguridad" data-i18n="section.faq_seguridad">Preguntas frecuentes y notas de seguridad</h2>
+      <h3 data-i18n="faq.1.q">¿El agente puede eliminar tópicos o suscripciones?</h3>
+      <div data-i18n="faq.1.a"><p>No. La cuenta de servicio solo tiene permisos de publicación y consumo; el conector no expone ninguna operación de eliminación.</p></div>
+      <h3 data-i18n="faq.2.q">¿Dónde queda guardado el JSON de la cuenta de servicio?</h3>
+      <div data-i18n="faq.2.a"><p>Como secreto en el almacén de credenciales de la plataforma. La interfaz nunca vuelve a mostrarlo.</p></div>
+      <h3 data-i18n="faq.3.q">Rotación de credenciales</h3>
+      <div data-i18n="faq.3.a"><p>Generá una nueva clave para la cuenta de servicio periódicamente desde Google Cloud Console y actualizala en el formulario; luego eliminá la clave anterior.</p></div>
+      <h3 data-i18n="faq.4.q">¿Qué hago si el JSON de la cuenta de servicio se compromete?</h3>
+      <div data-i18n="faq.4.a"><ol><li>Eliminá la clave comprometida en Google Cloud Console → IAM y administración → Cuentas de servicio.</li><li>Generá una nueva clave y actualizala en el formulario.</li><li>Revisá los Cloud Audit Logs por actividad inesperada sobre el tópico.</li></ol></div>
+      <div class="callout callout-warning">
+        <span class="callout-title" data-i18n="faq.warning_title">Buenas prácticas</span>
+        <span data-i18n="faq.warning_body">Usá una cuenta de servicio dedicada con acceso limitado a un único tópico; nunca uses una identidad con el rol Pub/Sub Admin a nivel de proyecto; y evitá consumir mensajes de una suscripción de producción sin confirmar primero con el usuario.</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const I18N = {
+      es: {
+        doc_title: "Conector Google Pub/Sub — Ruvic", toc_title: "Contenido",
+        "toc.que_es": "¿Qué es y para qué sirve?", "toc.prerrequisitos": "Prerrequisitos",
+        "toc.configuracion_fabricante": "Configuración en el fabricante", "toc.permisos": "Permisos requeridos",
+        "toc.configuracion_ruvic": "Configuración en Ruvic", "toc.verificacion": "Verificación",
+        "toc.solucion_problemas": "Solución de problemas", "toc.faq_seguridad": "Preguntas frecuentes y notas de seguridad",
+        guide_title: "Conector Google Pub/Sub",
+        "section.que_es": "¿Qué es y para qué sirve?",
+        "section.que_es.body": "Este conector permite al agente de Ruvic publicar mensajes en un tópico de Google Cloud Pub/Sub, crear suscripciones pull sobre ese tópico, y consumir mensajes de una suscripción.",
+        "section.que_es.sensitive_title": "Este conector escribe y elimina datos reales",
+        "section.que_es.sensitive_body": "publish_message escribe un mensaje real. create_subscription crea un recurso real en el proyecto. consume_messages confirma (ack) los mensajes recibidos, que no vuelven a entregarse.",
+        "table.operacion": "Operación", "table.que_hace": "Qué hace",
+        "op.publish_message": "Publica un mensaje de texto en el tópico configurado",
+        "op.create_subscription": "Crea una suscripción pull sobre el tópico configurado",
+        "op.consume_messages": "Consume y confirma mensajes de una suscripción",
+        "section.prerrequisitos": "Prerrequisitos",
+        "prereq.1": "Un <strong>tópico de Google Cloud Pub/Sub</strong> ya creado.",
+        "prereq.2": "Acceso a <strong>Google Cloud Console</strong> para crear una cuenta de servicio.",
+        "section.configuracion_fabricante": "Configuración en el fabricante",
+        "step.1.label": "Creá una cuenta de servicio dedicada.",
+        "step.1.body": "En Google Cloud Console → IAM y administración → Cuentas de servicio → Crear cuenta de servicio. Generá y descargá una clave JSON.",
+        "step.2.label": "Otorgá acceso al tópico con mínimo privilegio.",
+        "step.2.body": "Asigná los roles \"Pub/Sub Publisher\" (para publicar) y \"Pub/Sub Editor\" o \"Pub/Sub Subscriber\" (para crear suscripciones y consumir), idealmente limitados al tópico específico mediante condiciones IAM.",
+        "step.3.label": "Anotá los datos necesarios.",
+        "step.3.body": "El contenido completo del archivo JSON de la cuenta de servicio, y el nombre del tópico.",
+        "section.permisos": "Permisos requeridos", "table.permiso": "Permiso", "table.para_que": "Para qué sirve",
+        "perm.publisher": "Publicar mensajes en el tópico", "perm.subscriber": "Crear suscripciones y consumir mensajes",
+        "perm.note_title": "Nota",
+        "perm.note_body": "No se otorga el rol \"Pub/Sub Admin\" a nivel de proyecto completo si es posible limitarlo al tópico específico.",
+        "section.configuracion_ruvic": "Configuración en Ruvic",
+        "ruvic.intro": "Entrá a <strong>Settings → Conectores</strong>, buscá <strong>Google Pub/Sub</strong> y pulsá <strong>Configurar</strong>. Pegá el JSON completo de la cuenta de servicio y el nombre del tópico.",
+        "ruvic.test_button": "Probar conexión",
+        "ruvic.test_note": " — la plataforma verificará el acceso al tópico para confirmar credenciales.",
+        "section.verificacion": "Verificación",
+        "verif.1.label": "Test de conexión exitoso.", "verif.1.body": "\"Probar conexión\" debe responder con éxito.",
+        "verif.2.label": "Prueba mínima con el agente.", "verif.2.body": "Pedile:",
+        "verif.2.quote": "\"Publicá un mensaje de prueba en el tópico.\"",
+        "verif.2.result": "El agente debe confirmar la publicación y devolver el message_id.",
+        "section.solucion_problemas": "Solución de problemas", "table.mensaje": "Mensaje / síntoma", "table.causa": "Causa probable y solución",
+        "trouble.1.msg": "\"Credenciales inválidas o sin permiso IAM suficiente\"",
+        "trouble.1.fix": "Falta el rol \"Pub/Sub Publisher\" o \"Pub/Sub Editor/Subscriber\" sobre el tópico, o la clave fue revocada.",
+        "trouble.2.msg": "\"El tópico no existe o no es accesible\"",
+        "trouble.2.fix": "Nombre de tópico mal escrito, o el tópico está en otro proyecto distinto al de la cuenta de servicio.",
+        "trouble.3.msg": "\"Google Cloud Pub/Sub no respondió correctamente\"",
+        "trouble.3.fix": "Límite de cuota temporal; reintentá en unos segundos.",
+        "trouble.4.msg": "consume_messages siempre devuelve una lista vacía",
+        "trouble.4.fix": "No es un error: no había mensajes disponibles. Verificá que otro consumidor no esté vaciando la suscripción primero.",
+        "section.faq_seguridad": "Preguntas frecuentes y notas de seguridad",
+        "faq.1.q": "¿El agente puede eliminar tópicos o suscripciones?",
+        "faq.1.a": "No. La cuenta de servicio solo tiene permisos de publicación y consumo; el conector no expone ninguna operación de eliminación.",
+        "faq.2.q": "¿Dónde queda guardado el JSON de la cuenta de servicio?",
+        "faq.2.a": "Como secreto en el almacén de credenciales de la plataforma. La interfaz nunca vuelve a mostrarlo.",
+        "faq.3.q": "Rotación de credenciales",
+        "faq.3.a": "Generá una nueva clave para la cuenta de servicio periódicamente desde Google Cloud Console y actualizala en el formulario; luego eliminá la clave anterior.",
+        "faq.4.q": "¿Qué hago si el JSON de la cuenta de servicio se compromete?",
+        "faq.4.a": "Eliminá la clave comprometida en Google Cloud Console. Generá una nueva y actualizala en el formulario. Revisá los Cloud Audit Logs por actividad inesperada.",
+        "faq.warning_title": "Buenas prácticas",
+        "faq.warning_body": "Usá una cuenta de servicio dedicada con acceso limitado a un único tópico; nunca uses una identidad con el rol Pub/Sub Admin a nivel de proyecto; y evitá consumir mensajes de una suscripción de producción sin confirmar primero con el usuario.",
+      },
+      en: {
+        doc_title: "Google Pub/Sub Connector — Ruvic", toc_title: "Contents",
+        "toc.que_es": "What it is and what it's for", "toc.prerrequisitos": "Prerequisites",
+        "toc.configuracion_fabricante": "Vendor-side setup", "toc.permisos": "Required permissions",
+        "toc.configuracion_ruvic": "Setup in Ruvic", "toc.verificacion": "Verification",
+        "toc.solucion_problemas": "Troubleshooting", "toc.faq_seguridad": "FAQ and security notes",
+        guide_title: "Google Pub/Sub Connector",
+        "section.que_es": "What it is and what it's for",
+        "section.que_es.body": "This connector lets the Ruvic agent publish messages to a Google Cloud Pub/Sub topic, create pull subscriptions on that topic, and consume messages from a subscription.",
+        "section.que_es.sensitive_title": "This connector writes and deletes real data",
+        "section.que_es.sensitive_body": "publish_message writes a real message. create_subscription creates a real resource in the project. consume_messages acknowledges received messages, which are not redelivered.",
+        "table.operacion": "Operation", "table.que_hace": "What it does",
+        "op.publish_message": "Publishes a text message to the configured topic",
+        "op.create_subscription": "Creates a pull subscription on the configured topic",
+        "op.consume_messages": "Consumes and acknowledges messages from a subscription",
+        "section.prerrequisitos": "Prerequisites",
+        "prereq.1": "An existing <strong>Google Cloud Pub/Sub topic</strong>.",
+        "prereq.2": "Access to <strong>Google Cloud Console</strong> to create a service account.",
+        "section.configuracion_fabricante": "Vendor-side setup",
+        "step.1.label": "Create a dedicated service account.",
+        "step.1.body": "In Google Cloud Console → IAM & Admin → Service Accounts → Create Service Account. Generate and download a JSON key.",
+        "step.2.label": "Grant least-privilege access to the topic.",
+        "step.2.body": "Assign the \"Pub/Sub Publisher\" role (to publish) and \"Pub/Sub Editor\" or \"Pub/Sub Subscriber\" (to create subscriptions and consume), ideally scoped to the specific topic via IAM conditions.",
+        "step.3.label": "Note down the required data.",
+        "step.3.body": "The full content of the service account's JSON file, and the topic name.",
+        "section.permisos": "Required permissions", "table.permiso": "Permission", "table.para_que": "Why the connector needs it",
+        "perm.publisher": "Publish messages to the topic", "perm.subscriber": "Create subscriptions and consume messages",
+        "perm.note_title": "Note",
+        "perm.note_body": "The \"Pub/Sub Admin\" role at the full-project level is not granted if it can be scoped to the specific topic instead.",
+        "section.configuracion_ruvic": "Setup in Ruvic",
+        "ruvic.intro": "Go to <strong>Settings → Connectors</strong>, find <strong>Google Pub/Sub</strong> and click <strong>Configure</strong>. Paste the full service account JSON and the topic name.",
+        "ruvic.test_button": "Test connection",
+        "ruvic.test_note": " — the platform will verify access to the topic to confirm credentials.",
+        "section.verificacion": "Verification",
+        "verif.1.label": "Successful connection test.", "verif.1.body": "\"Test connection\" should succeed.",
+        "verif.2.label": "Minimal test with the agent.", "verif.2.body": "Ask:",
+        "verif.2.quote": "\"Publish a test message to the topic.\"",
+        "verif.2.result": "The agent should confirm the publish and return the message_id.",
+        "section.solucion_problemas": "Troubleshooting", "table.mensaje": "Message / symptom", "table.causa": "Likely cause and fix",
+        "trouble.1.msg": "\"Invalid credentials or insufficient IAM permission\"",
+        "trouble.1.fix": "Missing \"Pub/Sub Publisher\" or \"Pub/Sub Editor/Subscriber\" role on the topic, or the key was revoked.",
+        "trouble.2.msg": "\"The topic does not exist or is not accessible\"",
+        "trouble.2.fix": "Topic name mistyped, or the topic lives in a different project than the service account.",
+        "trouble.3.msg": "\"Google Cloud Pub/Sub did not respond correctly\"",
+        "trouble.3.fix": "Temporary quota limit; retry in a few seconds.",
+        "trouble.4.msg": "consume_messages always returns an empty list",
+        "trouble.4.fix": "Not an error: no messages were available. Check that another consumer isn't draining the subscription first.",
+        "section.faq_seguridad": "FAQ and security notes",
+        "faq.1.q": "Can the agent delete topics or subscriptions?",
+        "faq.1.a": "No. The service account only has publish and consume permissions; the connector exposes no deletion operation.",
+        "faq.2.q": "Where is the service account JSON stored?",
+        "faq.2.a": "As a secret in the platform's credential store. The UI never shows it again.",
+        "faq.3.q": "Credential rotation",
+        "faq.3.a": "Periodically generate a new key for the service account from Google Cloud Console and update it in the form; then delete the old key.",
+        "faq.4.q": "What if the service account JSON is compromised?",
+        "faq.4.a": "Delete the compromised key in Google Cloud Console. Generate a new one and update it in the form. Review Cloud Audit Logs for unexpected activity on the topic.",
+        "faq.warning_title": "Best practices",
+        "faq.warning_body": "Use a dedicated service account scoped to a single topic; never use an identity with the project-level Pub/Sub Admin role; and avoid consuming messages from a production subscription without confirming with the user first.",
+      },
+    };
+    (function () {
+      function applyLang(lang) {
+        document.querySelectorAll("[data-i18n]").forEach(function (el) {
+          const key = el.getAttribute("data-i18n");
+          if (I18N[lang] && I18N[lang][key] !== undefined) el.innerHTML = I18N[lang][key];
+        });
+      }
+      let saved = "es";
+      try { const stored = localStorage.getItem("ruvic-docs-lang"); if (stored === "en" || stored === "es") saved = stored; } catch (e) {}
+      applyLang(saved);
+    })();
+  </script>
+</body>
+</html>

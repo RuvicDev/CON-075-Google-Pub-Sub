@@ -1,0 +1,55 @@
+{
+  "id": "pubsub",
+  "name": "Google Pub/Sub",
+  "name_en": "Google Pub/Sub",
+  "version": "1.0.0",
+  "description": "Mensajería empresarial en Google Cloud Pub/Sub: publicar mensajes, crear suscripciones y consumir mensajes",
+  "description_en": "Enterprise messaging in Google Cloud Pub/Sub: publish messages, create subscriptions and consume messages",
+  "icon": "icon.svg",
+  "category": "cloud",
+  "category_en": "cloud",
+  "keywords": ["google cloud", "gcp", "pubsub", "pub/sub", "mensajeria", "messaging", "cola", "queue", "cloud", "nube"],
+  "library": {
+    "package": "ruvic-pubsub-connector",
+    "install": "pip install git+https://github.com/Dgirto/Google-Pub-Sub.git#subdirectory=lib",
+    "import_name": "ruvic_pubsub_connector"
+  },
+  "auth_modes": [
+    {
+      "id": "service_account",
+      "label": "Cuenta de servicio (JSON)",
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "JSON de la cuenta de servicio",
+          "type": "textarea",
+          "secret": true,
+          "required": true,
+          "help_text": "Contenido completo del archivo JSON descargado desde Google Cloud Console → IAM y administración → Cuentas de servicio."
+        },
+        {
+          "key": "topic_name",
+          "label": "Tópico",
+          "type": "text",
+          "required": true,
+          "placeholder": "mi-topico",
+          "help_text": "El conector opera sobre un único tópico. Las suscripciones se crean o se consumen dinámicamente sobre este tópico."
+        },
+        {
+          "key": "connect_timeout",
+          "label": "Timeout de conexión (segundos)",
+          "type": "number",
+          "required": false,
+          "default": "10"
+        }
+      ]
+    }
+  ],
+  "env_prefix": "RUVIC_PUBSUB_",
+  "operations": ["pubsub.publish_message", "pubsub.create_subscription", "pubsub.consume_messages"],
+  "test_connection": true,
+  "docs": {
+    "skill": "SKILL.md",
+    "permissions_note": "La cuenta de servicio necesita los roles IAM 'Pub/Sub Publisher' (para publicar) y 'Pub/Sub Editor' o 'Pub/Sub Subscriber' + permiso de creación de suscripciones (para crear suscripciones y consumir), limitados al tópico configurado. Este conector SÍ escribe (publica mensajes, crea suscripciones) y elimina datos reales (consumir un mensaje lo confirma/ack, y no vuelve a entregarse)."
+  }
+}
