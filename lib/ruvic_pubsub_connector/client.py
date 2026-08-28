@@ -40,6 +40,15 @@ from .exceptions import (
 from .logging_utils import get_logger
 
 
+def _require_name(value: Any, name: str) -> str:
+    if value is not None and not isinstance(value, str):
+        raise PubSubDataError(f"{name} debe ser un string, no {type(value).__name__}.")
+    value = (value or "").strip()
+    if not value:
+        raise PubSubDataError(f"{name} no puede estar vacío.")
+    return value
+
+
 def _wrap_error(exc: GoogleAPICallError, not_found_message: str) -> PubSubConnectorError:
     """Traduce un error de la API de Pub/Sub a una excepción propia, sin
     dejar escapar nunca el tipo crudo del SDK."""
@@ -147,8 +156,9 @@ class PubSubClient:
         Ejemplo:
             >>> client.publish_message("pedido #1234 procesado")
         """
-        if not data:
-            raise PubSubDataError("data no puede estar vacío.")
+        data = _require_name(data, "data")
+        if attributes is not None and not isinstance(attributes, dict):
+            raise PubSubDataError(f"attributes debe ser un dict, no {type(attributes).__name__}.")
         try:
             future = self._get_publisher().publish(
                 self._topic_path(), data.encode("utf-8"), **(attributes or {})
@@ -179,6 +189,7 @@ class PubSubClient:
         Ejemplo:
             >>> client.create_subscription("mi-suscripcion")
         """
+        subscription_name = _require_name(subscription_name, "subscription_name")
         subscriber = self._get_subscriber()
         subscription_path = subscriber.subscription_path(self._project_id(), subscription_name)
         try:
@@ -218,6 +229,13 @@ class PubSubClient:
         Ejemplo:
             >>> client.consume_messages("mi-suscripcion", max_messages=5)
         """
+        subscription_name = _require_name(subscription_name, "subscription_name")
+        try:
+            max_messages = max(1, int(max_messages))
+        except (TypeError, ValueError) as exc:
+            raise PubSubDataError(
+                f"max_messages inválido: {max_messages!r}. Debe ser un número entero."
+            ) from exc
         subscriber = self._get_subscriber()
         subscription_path = subscriber.subscription_path(self._project_id(), subscription_name)
         try:
